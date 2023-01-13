@@ -120,7 +120,7 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
 
   return {
     paths: pokemonNames.map(name => ({params: {name: name}})),
-    fallback: false
+    fallback: 'blocking'
   }
 }
 
@@ -133,11 +133,24 @@ export const getStaticProps: GetStaticProps = async ({params}) => {
   const {name} = params as { name: string };
                       //as { name: string } solo es un typado simplificado
 
-  return {
-    props: {
-     pokemon: await getPokemonData(name)
-     //éste pokemon es el que le da los valores al pokemon que se esta recibiendo al inicio de la página como props
+ const pokemon = await getPokemonData(name)
+
+ if(!pokemon){
+  return{
+    redirect: {
+      destination: '/',
+      permanent: false
+    }
   }
+ }
+
+  return {
+  props: {
+    pokemon
+    //éste pokemon es el que le da los valores al pokemon que se esta recibiendo al inicio de la página como props
+  },
+  revalidate: 86400
+
 }}
 
 export default PokemonByNamePage

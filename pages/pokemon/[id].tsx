@@ -6,11 +6,11 @@ import Image from 'next/image';
 
 import confetti from 'canvas-confetti';
 
-import pokeApi from '../../api/pokeAPi';
 import { Layout } from '../../components/layouts'
 import { Pokemon } from '../../interfaces';
 import { toggleFavorites, favoritesValidate } from '../../utils';
 import { getPokemonData } from '../../utils/getPokemonData';
+import { redirect } from 'next/dist/server/api-utils';
 
 
 
@@ -118,7 +118,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
   return {
     paths,
-    fallback: false
+    fallback: 'blocking'
   }
 }
 
@@ -128,11 +128,23 @@ export const getStaticProps: GetStaticProps = async ({params}) => {
   const {id} = params as { id: string };
   //as { id: string } solo es un typado simplificado
 
+  const pokemon = await getPokemonData(id)
+
+  if(!pokemon){
+   return{
+    redirect:{
+      destination: '/',
+      permanent: false
+    }
+   }
+  }
+
   return {
     props: {
-     pokemon: await getPokemonData(id)
+     pokemon 
      //éste pokemon es el que le da los valores al pokemon que se esta recibiendo al inicio de la página
-  }
+  },
+  revalidate: 86400
 }}
 
 export default PokemonPage
